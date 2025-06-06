@@ -81,7 +81,7 @@ class FileCache implements CacheInterface
             return $default; // race condition: file not found
         }
 
-        if ($data === 'b:0;') {
+        if ($data === "b:0;") {
             return false; // because we can't otherwise distinguish a FALSE return-value from unserialize()
         }
 
@@ -150,7 +150,7 @@ class FileCache implements CacheInterface
         $paths = $this->listPaths();
 
         foreach ($paths as $path) {
-            if (! unlink($path)) {
+            if (!unlink($path)) {
                 $success = false;
             }
         }
@@ -210,7 +210,7 @@ class FileCache implements CacheInterface
 
         $dir = dirname($path);
 
-        if (! file_exists($dir)) {
+        if (!file_exists($dir)) {
             $this->mkdir($dir); // ensure that the parent path exists
         }
 
@@ -318,7 +318,7 @@ class FileCache implements CacheInterface
      */
     protected function validateKey($key)
     {
-        if (! is_string($key)) {
+        if (!is_string($key)) {
             $type = is_object($key) ? get_class($key) : gettype($key);
 
             throw new InvalidArgumentException("invalid key type: {$type} given");
