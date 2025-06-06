@@ -21,7 +21,8 @@ class FileCache implements CacheInterface
     /**
      * @var string control characters for keys, reserved by PSR-16
      */
-    const PSR16_RESERVED = "/\{|\}|\(|\)|\/|\\\\|\@|\:/u";
+    private const PSR16_RESERVED = "/\{|\}|\(|\)|\/|\\\\|\@|\:/u";
+    private const DISTANT_FUTURE = 32503680000;
 
     /**
      * @param string $cache_path  absolute root path of cache-file folder
@@ -69,9 +70,9 @@ class FileCache implements CacheInterface
             return $default; // file not found
         }
 
-        if ($this->getTime() >= $expires_at) {
+        // Only check expiration if it's not our "indefinite" marker
+        if ($expires_at !== self::DISTANT_FUTURE && $this->getTime() >= $expires_at) {
             @unlink($path); // file expired
-
             return $default;
         }
 
@@ -94,27 +95,38 @@ class FileCache implements CacheInterface
         return $value;
     }
 
-    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null): bool
-    {
+    public function set(
+        string $key,
+        mixed $value,
+        DateInterval|int|null $ttl = null
+    ): bool {
         $path = $this->getPath($key);
 
         $dir = dirname($path);
 
-        if (! file_exists($dir)) {
+        if (!file_exists($dir)) {
             // ensure that the parent path exists:
             $this->mkdir($dir);
         }
 
         $temp_path = $this->cache_path . "/" . uniqid("", true);
 
-        if (is_int($ttl)) {
+        if ($ttl === null) {
+            // Indefinite TTL - set expiration to a very distant future (year 3000)
+            $expires_at = self::DISTANT_FUTURE; // January 1, 3000
+        } elseif (is_int($ttl)) {
             $expires_at = $this->getTime() + $ttl;
         } elseif ($ttl instanceof DateInterval) {
-            $expires_at = date_create_from_format("U", (string) $this->getTime())->add($ttl)->getTimestamp();
-        } elseif ($ttl === null) {
-            $expires_at = $this->getTime() + $this->default_ttl;
+            $expires_at = date_create_from_format(
+                "U",
+                (string) $this->getTime()
+            )
+                ->add($ttl)
+                ->getTimestamp();
         } else {
-            throw new InvalidArgumentException("invalid TTL: " . print_r($ttl, true));
+            throw new InvalidArgumentException(
+                "invalid TTL: " . print_r($ttl, true)
+            );
         }
 
         if (false === @file_put_contents($temp_path, serialize($value))) {

@@ -126,7 +126,7 @@ class FileCacheCest
         $I->assertSame("default", $this->cache->get("key", "default"));
     }
 
-    public function expirationByDefault(IntegrationTester $I)
+    public function noExpirationByDefault(IntegrationTester $I)
     {
         $this->cache->set("key", "value");
 
@@ -136,8 +136,8 @@ class FileCacheCest
 
         $this->cache->skipTime(10);
 
-        $I->assertSame(null, $this->cache->get("key"));
-        $I->assertSame("default", $this->cache->get("key", "default"));
+        $I->assertSame('value', $this->cache->get("key"));
+        $I->assertSame("value", $this->cache->get("key", "default"));
     }
 
     public function expirationInThePast(IntegrationTester $I)
