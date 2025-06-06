@@ -105,7 +105,7 @@ class FileCache implements CacheInterface
             $this->mkdir($dir);
         }
 
-        $temp_path = $this->cache_path . DIRECTORY_SEPARATOR . uniqid('', true);
+        $temp_path = $this->cache_path . "/" . uniqid("", true);
 
         if (is_int($ttl)) {
             $expires_at = $this->getTime() + $ttl;
@@ -214,7 +214,7 @@ class FileCache implements CacheInterface
             $this->mkdir($dir); // ensure that the parent path exists
         }
 
-        $lock_path = $dir . DIRECTORY_SEPARATOR . ".lock"; // allows max. 256 client locks at one time
+        $lock_path = $dir . "/" . ".lock"; // allows max. 256 client locks at one time
 
         $lock_handle = fopen($lock_path, "w");
 
@@ -273,13 +273,13 @@ class FileCache implements CacheInterface
 
         $hash = hash("sha256", $key);
 
-        return $this->cache_path
-            . DIRECTORY_SEPARATOR
-            . strtoupper($hash[0])
-            . DIRECTORY_SEPARATOR
-            . strtoupper($hash[1])
-            . DIRECTORY_SEPARATOR
-            . substr($hash, 2);
+        return sprintf(
+            "%s/%s/%s/%s",
+            $this->cache_path,
+            strtoupper($hash[0]),
+            strtoupper($hash[1]),
+            substr($hash, 2)
+        );
     }
 
     /**
