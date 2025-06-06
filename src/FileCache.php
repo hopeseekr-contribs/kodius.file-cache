@@ -21,27 +21,7 @@ class FileCache implements CacheInterface
     /**
      * @var string control characters for keys, reserved by PSR-16
      */
-    const PSR16_RESERVED = '/\{|\}|\(|\)|\/|\\\\|\@|\:/u';
-
-    /**
-     * @var string
-     */
-    private $cache_path;
-
-    /**
-     * @var int
-     */
-    private $default_ttl;
-
-    /**
-     * @var int
-     */
-    private $dir_mode;
-
-    /**
-     * @var int
-     */
-    private $file_mode;
+    const PSR16_RESERVED = "/\{|\}|\(|\)|\/|\\\\|\@|\:/u";
 
     /**
      * @param string $cache_path  absolute root path of cache-file folder
@@ -51,24 +31,29 @@ class FileCache implements CacheInterface
      *
      * @throws InvalidArgumentException
      */
-    public function __construct($cache_path, $default_ttl, $dir_mode = 0775, $file_mode = 0664)
-    {
-        $this->default_ttl = $default_ttl;
-        $this->dir_mode = $dir_mode;
-        $this->file_mode = $file_mode;
-
-        if (! file_exists($cache_path) && file_exists(dirname($cache_path))) {
+    public function __construct(
+        private string $cache_path,
+        private int $default_ttl,
+        private int $dir_mode = 0775,
+        private int $file_mode = 0664
+    ) {
+        $cache_path = $this->cache_path;
+        if (!file_exists($cache_path) && file_exists(dirname($cache_path))) {
             $this->mkdir($cache_path); // ensure that the parent path exists
         }
 
         $path = realpath($cache_path);
 
         if ($path === false) {
-            throw new InvalidArgumentException("cache path does not exist: {$cache_path}");
+            throw new InvalidArgumentException(
+                "cache path does not exist: {$cache_path}"
+            );
         }
 
-        if (! is_writable($path . DIRECTORY_SEPARATOR)) {
-            throw new InvalidArgumentException("cache path is not writable: {$cache_path}");
+        if (!is_writable($path . "/")) {
+            throw new InvalidArgumentException(
+                "cache path is not writable: {$cache_path}"
+            );
         }
 
         $this->cache_path = $path;
